@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
-use crate::models::Ingredient;
+use crate::{models::Ingredient, todoist::post_todist_ingredient};
 
 pub async fn root() -> Json<Value> {
     Json(json!({"hello": "world!"}))
@@ -72,6 +72,10 @@ pub async fn get_unique_ingredients(
         }
         Ok(rows) => rows,
     };
+
+    for ingredient in &rows {
+        post_todist_ingredient(ingredient).await;
+    }
 
     Json(json!(rows))
 }

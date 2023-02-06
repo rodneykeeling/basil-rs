@@ -6,6 +6,7 @@ use tracing::{error, info};
 mod models;
 mod routes;
 mod sql;
+mod todoist;
 
 #[tokio::main]
 async fn main() {
@@ -29,9 +30,12 @@ async fn main() {
         .with_state(db_pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    info!("Listening on {addr}");
-    axum::Server::bind(&addr)
+    match axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
+    {
+        Ok(a) => a,
+        Err(e) => panic!("Could not start axum server: {e}"),
+    };
+    info!("Listening on {addr}");
 }
