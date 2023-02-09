@@ -4,7 +4,7 @@ use tracing::error;
 use crate::models::Ingredient;
 
 pub async fn post_todist_ingredient(ingredient: &Ingredient) {
-    let todoist_api_url = "https://api.todoist.com/rest/v2/tasks".to_string();
+    let todoist_api_url = "https://api.todoist.com/rest/v2/tasks";
     let todoist_project_id = env!("TODOIST_PROJECT_ID").to_string();
 
     let location = HashMap::from([

@@ -51,7 +51,6 @@ pub async fn get_unique_ingredients(
     State(pool): State<PgPool>,
     Form(input): Form<Input>,
 ) -> Json<Value> {
-    dbg!(&input.ingredient);
     let ingredients = input.ingredient;
 
     let rows = match sqlx::query_as!(
