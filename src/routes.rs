@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
-use crate::{models::Ingredient, todoist::post_todist_ingredient};
+use crate::{models::Ingredient, todoist};
 
 pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
     let rows = match sqlx::query_as!(
@@ -75,7 +75,7 @@ pub async fn get_unique_ingredients(
 
     if sync.is_some() {
         for ingredient in &rows {
-            post_todist_ingredient(ingredient).await;
+            todoist::sync_ingredient(ingredient).await;
         }
     }
 
