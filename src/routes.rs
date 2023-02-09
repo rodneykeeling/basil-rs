@@ -1,6 +1,6 @@
 use axum::{extract::State, Json};
 use axum_extra::extract::Form;
-use maud::{html, Markup, PreEscaped};
+use maud::{html, Markup};
 use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use tracing::error;

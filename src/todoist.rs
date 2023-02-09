@@ -3,10 +3,11 @@ use tracing::error;
 
 use crate::models::Ingredient;
 
-pub async fn post_todist_ingredient(ingredient: &Ingredient) {
-    let todoist_api_url = "https://api.todoist.com/rest/v2/tasks";
-    let todoist_project_id = env!("TODOIST_PROJECT_ID").to_string();
+const TODOIST_API_TOKEN: &str = env!("TODOIST_API_TOKEN");
+const TODOIST_API_URL: &str = "https://api.todoist.com/rest/v2/tasks";
+const TODOIST_PROJECT_ID: &str = env!("TODOIST_PROJECT_ID");
 
+pub async fn post_todist_ingredient(ingredient: &Ingredient) {
     let location = HashMap::from([
         ("bread", "112440056"),
         ("bulk", "112440118"),
@@ -19,19 +20,18 @@ pub async fn post_todist_ingredient(ingredient: &Ingredient) {
     ]);
     let ingredient_location = location[&ingredient.location[..]].to_string();
 
-    let todoist_api_token = env!("TODOIST_API_TOKEN");
+    let content = HashMap::from([
+        ("content", &ingredient.name[..]),
+        ("project_id", TODOIST_PROJECT_ID),
+        ("section_id", &ingredient_location[..]),
+    ]);
 
     let client = reqwest::Client::new();
-    let content = HashMap::from([
-        ("content", &ingredient.name),
-        ("project_id", &todoist_project_id),
-        ("section_id", &ingredient_location),
-    ]);
     let _ = match client
-        .post(todoist_api_url)
+        .post(TODOIST_API_URL)
         .json(&content)
         .header("Content-Type", "application/json")
-        .header("Authorization", format!("Bearer {todoist_api_token}"))
+        .header("Authorization", format!("Bearer {}", TODOIST_API_TOKEN))
         .send()
         .await
     {
