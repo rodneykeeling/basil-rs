@@ -22,9 +22,8 @@ async fn main() {
     };
 
     let app = Router::new()
-        .route("/", get(routes::root))
         .route(
-            "/ingredients",
+            "/",
             get(routes::get_ingredients).post(routes::get_unique_ingredients),
         )
         .with_state(db_pool);

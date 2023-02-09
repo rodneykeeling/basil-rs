@@ -1,15 +1,11 @@
 use axum::{extract::State, Json};
 use axum_extra::extract::Form;
-use maud::{html, Markup};
+use maud::{html, Markup, PreEscaped};
 use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
 use crate::{models::Ingredient, todoist::post_todist_ingredient};
-
-pub async fn root() -> Json<Value> {
-    Json(json!({"hello": "world!"}))
-}
 
 pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
     let rows = match sqlx::query_as!(
@@ -30,14 +26,17 @@ pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
     };
 
     html! {
-        form action="/ingredients" method="post" {
+        form action="/" method="post" {
             @for row in &rows {
-                label for="ingredient";
                 input type="checkbox" name="ingredient" value=(row.name);
-                (row.name)
+                label for="ingredient" { (row.name) };
                 br;
             }
-            button type="submit" value="Submit";
+            br;
+            input type="checkbox" name="sync" value="sync";
+            label for="sync" { "Sync to Todoist" }
+            br;
+            input type="submit" value="Submit";
         }
     }
 }
@@ -45,6 +44,7 @@ pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
 #[derive(serde::Deserialize)]
 pub struct Input {
     ingredient: Vec<String>,
+    sync: Option<String>,
 }
 
 pub async fn get_unique_ingredients(
@@ -52,6 +52,7 @@ pub async fn get_unique_ingredients(
     Form(input): Form<Input>,
 ) -> Json<Value> {
     let ingredients = input.ingredient;
+    let sync = input.sync;
 
     let rows = match sqlx::query_as!(
         Ingredient,
@@ -72,8 +73,10 @@ pub async fn get_unique_ingredients(
         Ok(rows) => rows,
     };
 
-    for ingredient in &rows {
-        post_todist_ingredient(ingredient).await;
+    if sync.is_some() {
+        for ingredient in &rows {
+            post_todist_ingredient(ingredient).await;
+        }
     }
 
     Json(json!(rows))
