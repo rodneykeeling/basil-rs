@@ -29,6 +29,7 @@ async fn main() {
         .with_state(db_pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    info!("Listening on {addr}");
     match axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
@@ -36,5 +37,4 @@ async fn main() {
         Ok(a) => a,
         Err(e) => panic!("Could not start axum server: {e}"),
     };
-    info!("Listening on {addr}");
 }

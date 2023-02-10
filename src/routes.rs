@@ -8,7 +8,7 @@ use tracing::error;
 use crate::{models::Ingredient, todoist};
 
 pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
-    let rows = match sqlx::query_as!(
+    let rows = sqlx::query_as!(
         Ingredient,
         "SELECT i.name AS name, l.name AS location
         FROM ingredient i
@@ -17,13 +17,10 @@ pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
     )
     .fetch_all(&pool)
     .await
-    {
-        Err(e) => {
-            error!("Could not query from database: {e}");
-            vec![]
-        }
-        Ok(rows) => rows,
-    };
+    .unwrap_or({
+        error!("Could not query from database");
+        vec![]
+    });
 
     html! {
         form action="/" method="post" {
@@ -54,7 +51,7 @@ pub async fn get_unique_ingredients(
     let ingredients = input.ingredient;
     let sync = input.sync;
 
-    let rows = match sqlx::query_as!(
+    let rows = sqlx::query_as!(
         Ingredient,
         "SELECT i.name AS name, l.name AS location
         FROM ingredient i
@@ -65,13 +62,10 @@ pub async fn get_unique_ingredients(
     )
     .fetch_all(&pool)
     .await
-    {
-        Err(e) => {
-            error!("Could not query from database: {e}");
-            vec![]
-        }
-        Ok(rows) => rows,
-    };
+    .unwrap_or({
+        error!("Could not query from database.");
+        vec![]
+    });
 
     if sync.is_some() {
         for ingredient in &rows {
