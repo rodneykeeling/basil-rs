@@ -2,9 +2,8 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct Recipe {
-    pub id: i32,
     pub name: String,
-    pub ingredients: Vec<Ingredient>,
+    pub ingredients: Vec<String>,
 }
 
 #[derive(Serialize)]
