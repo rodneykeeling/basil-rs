@@ -6,6 +6,7 @@ use tracing::{error, info};
 mod models;
 mod routes;
 mod sql;
+mod templates;
 mod todoist;
 
 #[tokio::main]
@@ -22,10 +23,12 @@ async fn main() {
     };
 
     let app = Router::new()
+        .route("/", get(routes::root))
         .route(
-            "/",
+            "/ingredients",
             get(routes::get_ingredients).post(routes::get_unique_ingredients),
         )
+        .route("/recipes", get(routes::get_recipes))
         .with_state(db_pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

@@ -1,16 +1,17 @@
-use axum::{extract::State, Json};
+use axum::{extract::State, response::Html, Json};
 use axum_extra::extract::Form;
-use maud::{html, Markup};
+use minijinja::render;
 use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
 use crate::{
     models::{Ingredient, Recipe},
+    templates::ROOT_HTML,
     todoist,
 };
 
-pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
+pub async fn root(State(pool): State<PgPool>) -> Html<String> {
     let ingredient_rows = sqlx::query_as!(
         Ingredient,
         "SELECT i.name AS name, l.name AS location
@@ -48,32 +49,25 @@ pub async fn get_ingredients(State(pool): State<PgPool>) -> Markup {
         });
     }
 
-    html! {
-        form action="/" method="post" {
-            @for recipe in &recipes {
-                input type="checkbox" name="recipe" value=(recipe.name);
-                label for="recipe" { (recipe.name) };
-                br;
-                @for ingredient in &recipe.ingredients {
-                    "- " input type="checkbox" name="ingredient" value=(ingredient);
-                    label for="ingredient" { (ingredient) };
-                    br;
-                }
-                br;
-            }
-            br;
-            @for row in &ingredient_rows {
-                input type="checkbox" name="ingredient" value=(row.name);
-                label for="ingredient" { (row.name) };
-                br;
-            }
-            br;
-            input type="checkbox" name="sync" value="sync";
-            label for="sync" { "Sync to Todoist" }
-            br; br;
-            input type="submit" value="Submit";
-        }
-    }
+    Html(render!(ROOT_HTML, ingredients => ingredient_rows, recipes => recipes))
+}
+
+pub async fn get_ingredients(State(pool): State<PgPool>) -> Json<Value> {
+    let ingredient_rows = sqlx::query_as!(
+        Ingredient,
+        "SELECT i.name AS name, l.name AS location
+        FROM ingredient i
+        INNER JOIN ingredient_location il ON i.id=il.ingredient_id
+        INNER JOIN location l on l.id=il.location_id"
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap_or_else(|e| {
+        error!("Could not query from database: {}", e);
+        vec![]
+    });
+
+    Json(json!(ingredient_rows))
 }
 
 #[derive(serde::Deserialize)]
@@ -100,8 +94,8 @@ pub async fn get_unique_ingredients(
     )
     .fetch_all(&pool)
     .await
-    .unwrap_or({
-        error!("Could not query from database.");
+    .unwrap_or_else(|e| {
+        error!("Could not query from database: {}", e);
         vec![]
     });
 
@@ -112,4 +106,31 @@ pub async fn get_unique_ingredients(
     }
 
     Json(json!(rows))
+}
+
+pub async fn get_recipes(State(pool): State<PgPool>) -> Json<Value> {
+    let recipe_rows = sqlx::query!(
+        "SELECT r.name AS name, array_agg(i.name) as ingredients
+        FROM recipe r
+        INNER JOIN recipe_ingredient ri ON r.id=ri.recipe_id
+        INNER JOIN ingredient i ON ri.ingredient_id=i.id
+        GROUP BY r.name"
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap_or_else(|e| {
+        error!("Could not query from database: {}", e);
+        vec![]
+    });
+
+    let mut recipes: Vec<Recipe> = Vec::new();
+    for row in &recipe_rows {
+        let recipe_ingredients = row.ingredients.as_ref().unwrap().clone();
+        recipes.push(Recipe {
+            name: row.name.clone(),
+            ingredients: recipe_ingredients,
+        });
+    }
+
+    Json(json!(recipes))
 }

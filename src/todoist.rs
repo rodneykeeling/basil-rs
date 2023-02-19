@@ -39,7 +39,7 @@ pub async fn sync_ingredient(ingredient: &Ingredient) {
         .post(TODOIST_API_URL)
         .json(&content)
         .header("Content-Type", "application/json")
-        .header("Authorization", format!("Bearer {}", TODOIST_API_TOKEN))
+        .header("Authorization", format!("Bearer {TODOIST_API_TOKEN}"))
         .send()
         .await
     {
