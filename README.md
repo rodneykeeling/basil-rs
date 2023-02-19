@@ -1,6 +1,6 @@
 # 🌿 basil.rs
 
-`basil` is a personal project to help me grocery shop and learn Rust. It allows me to generate grocery lists based on my most frequently purchased ingredients, as well as ingredients from my favorite recipes, and syncs it to my grocery list on Todoist, all grouped by aisle.
+`basil` is a personal project to help me grocery shop and learn Rust. It can generate grocery lists based on most frequently purchased ingredients, as well as ingredients from my favorite recipes, and syncs it to my grocery list on Todoist, all grouped by aisle.
 
 Note: this is a tool I use every time I go grocery shopping, but it's also a side-project for my own learning purposes, so over-engineering is expected here.
 

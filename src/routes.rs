@@ -22,7 +22,7 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
     .fetch_all(&pool)
     .await
     .unwrap_or_else(|e| {
-        error!("Could not query from database: {}", e);
+        error!("Could not query from database: {e}");
         vec![]
     });
 
@@ -36,7 +36,7 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
     .fetch_all(&pool)
     .await
     .unwrap_or_else(|e| {
-        error!("Could not query from database: {}", e);
+        error!("Could not query from database: {e}");
         vec![]
     });
 
@@ -63,7 +63,7 @@ pub async fn get_ingredients(State(pool): State<PgPool>) -> Json<Value> {
     .fetch_all(&pool)
     .await
     .unwrap_or_else(|e| {
-        error!("Could not query from database: {}", e);
+        error!("Could not query from database: {e}");
         vec![]
     });
 
@@ -95,14 +95,12 @@ pub async fn get_unique_ingredients(
     .fetch_all(&pool)
     .await
     .unwrap_or_else(|e| {
-        error!("Could not query from database: {}", e);
+        error!("Could not query from database: {e}");
         vec![]
     });
 
     if sync.is_some() {
-        for ingredient in &rows {
-            todoist::sync_ingredient(ingredient).await;
-        }
+        todoist::sync_ingredients(&rows).await;
     }
 
     Json(json!(rows))
@@ -119,7 +117,7 @@ pub async fn get_recipes(State(pool): State<PgPool>) -> Json<Value> {
     .fetch_all(&pool)
     .await
     .unwrap_or_else(|e| {
-        error!("Could not query from database: {}", e);
+        error!("Could not query from database: {e}");
         vec![]
     });
 
