@@ -3,8 +3,8 @@ use dotenvy::dotenv;
 use std::net::SocketAddr;
 use tracing::{error, info};
 
+mod handlers;
 mod models;
-mod routes;
 mod sql;
 mod templates;
 mod todoist;
@@ -23,12 +23,12 @@ async fn main() {
     };
 
     let app = Router::new()
-        .route("/", get(routes::root))
+        .route("/", get(handlers::root))
         .route(
             "/ingredients",
-            get(routes::get_ingredients).post(routes::get_unique_ingredients),
+            get(handlers::get_all_ingredients).post(handlers::get_ingredients),
         )
-        .route("/recipes", get(routes::get_recipes))
+        .route("/recipes", get(handlers::get_recipes))
         .with_state(db_pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

@@ -52,7 +52,7 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
     Html(render!(ROOT_HTML, ingredients => ingredient_rows, recipes => recipes))
 }
 
-pub async fn get_ingredients(State(pool): State<PgPool>) -> Json<Value> {
+pub async fn get_all_ingredients(State(pool): State<PgPool>) -> Json<Value> {
     let ingredient_rows = sqlx::query_as!(
         Ingredient,
         "SELECT i.name AS name, l.name AS location
@@ -76,10 +76,7 @@ pub struct Input {
     sync: Option<String>,
 }
 
-pub async fn get_unique_ingredients(
-    State(pool): State<PgPool>,
-    Form(input): Form<Input>,
-) -> Json<Value> {
+pub async fn get_ingredients(State(pool): State<PgPool>, Form(input): Form<Input>) -> Json<Value> {
     let ingredients = input.ingredient;
     let sync = input.sync;
 
