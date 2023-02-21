@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::{extract::State, response::Html, Json};
 use axum_extra::extract::Form;
 use minijinja::render;
@@ -26,6 +28,14 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
         vec![]
     });
 
+    let mut ingredients_by_aisle = HashMap::new();
+    for ingredient in &ingredient_rows {
+        ingredients_by_aisle
+            .entry(&ingredient.location)
+            .or_insert_with(Vec::new)
+            .push(&ingredient.name);
+    }
+
     let recipe_rows = sqlx::query!(
         "SELECT r.name AS name, array_agg(i.name) as ingredients
         FROM recipe r
@@ -41,15 +51,14 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
     });
 
     let mut recipes: Vec<Recipe> = Vec::new();
-    for row in &recipe_rows {
-        let recipe_ingredients = row.ingredients.as_ref().unwrap().clone();
+    for row in recipe_rows {
         recipes.push(Recipe {
-            name: row.name.clone(),
-            ingredients: recipe_ingredients,
+            name: row.name,
+            ingredients: row.ingredients.unwrap(),
         });
     }
 
-    Html(render!(ROOT_HTML, ingredients => ingredient_rows, recipes => recipes))
+    Html(render!(ROOT_HTML, aisles => ingredients_by_aisle, recipes => recipes))
 }
 
 pub async fn get_all_ingredients(State(pool): State<PgPool>) -> Json<Value> {
@@ -119,11 +128,10 @@ pub async fn get_recipes(State(pool): State<PgPool>) -> Json<Value> {
     });
 
     let mut recipes: Vec<Recipe> = Vec::new();
-    for row in &recipe_rows {
-        let recipe_ingredients = row.ingredients.as_ref().unwrap().clone();
+    for row in recipe_rows {
         recipes.push(Recipe {
-            name: row.name.clone(),
-            ingredients: recipe_ingredients,
+            name: row.name,
+            ingredients: row.ingredients.unwrap(),
         });
     }
 
