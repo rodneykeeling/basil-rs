@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
 use axum::{extract::State, response::Html, Json};
 use axum_extra::extract::Form;
 use minijinja::render;
 use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
+use std::collections::HashMap;
 use tracing::error;
 
 use crate::{
@@ -105,7 +104,7 @@ pub async fn get_ingredients(State(pool): State<PgPool>, Form(input): Form<Input
         vec![]
     });
 
-    if sync.is_some() {
+    if sync.is_some() && !rows.is_empty() {
         todoist::sync_ingredients(&rows).await;
     }
 

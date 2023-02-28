@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use phf::phf_map;
 use serde::Serialize;
+use std::collections::HashMap;
 use tracing::error;
 use uuid::Uuid;
 
