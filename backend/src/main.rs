@@ -6,7 +6,6 @@ use tracing::{error, info};
 mod handlers;
 mod models;
 mod sql;
-mod templates;
 mod todoist;
 
 #[tokio::main]
@@ -23,10 +22,9 @@ async fn main() {
     };
 
     let app = Router::new()
-        .route("/", get(handlers::root))
         .route(
             "/ingredients",
-            get(handlers::get_all_ingredients).post(handlers::get_ingredients),
+            get(handlers::get_ingredients).post(handlers::post_ingredients),
         )
         .route("/recipes", get(handlers::get_recipes))
         .with_state(db_pool);

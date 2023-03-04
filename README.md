@@ -10,11 +10,13 @@ Note: this is a tool I use every time I go grocery shopping, but it's also a sid
 - [ ] Determine amount of ingredients to get (`onion x3`) based on recipe/ingredient selections
 - [x] Final grocery list grouped by aisle
 - [x] Todoist sync
-- [ ] A better frontend experience in place of Rust-based templating
+- [x] A better frontend experience in place of Rust-based templating
 - [ ] Ordering: alphabetically, chronologically (most-recently purchased), hierarchically (aisle)
+- [ ] Dockerize Rust and Preact apps?
 
 ## Usage
 - `cp env-example .env` and fill in the relevant TODOIST API values
-- `docker compose up` to get postgresql running
+- `docker compose up` to get PostgreSQL running
 - `psql -h localhost -d basil -U root -f dump.sql` to import data
-- `cargo run` and visit `localhost:3000`
+- `cd backend && cargo run` to get the API running
+- `cd frontend && npm run dev` and visit `localhost:8080`

@@ -1,6 +1,5 @@
-use axum::{extract::State, response::Html, Json};
+use axum::{extract::State, Json};
 use axum_extra::extract::Form;
-use minijinja::render;
 use serde_json::{json, Value};
 use sqlx::postgres::PgPool;
 use std::collections::HashMap;
@@ -8,11 +7,10 @@ use tracing::error;
 
 use crate::{
     models::{Ingredient, Recipe},
-    templates::ROOT_HTML,
     todoist,
 };
 
-pub async fn root(State(pool): State<PgPool>) -> Html<String> {
+pub async fn get_ingredients(State(pool): State<PgPool>) -> Json<Value> {
     let ingredient_rows = sqlx::query_as!(
         Ingredient,
         "SELECT i.name AS name, l.name AS location
@@ -56,26 +54,7 @@ pub async fn root(State(pool): State<PgPool>) -> Html<String> {
             ingredients: row.ingredients.unwrap(),
         });
     }
-
-    Html(render!(ROOT_HTML, aisles => ingredients_by_aisle, recipes => recipes))
-}
-
-pub async fn get_all_ingredients(State(pool): State<PgPool>) -> Json<Value> {
-    let ingredient_rows = sqlx::query_as!(
-        Ingredient,
-        "SELECT i.name AS name, l.name AS location
-        FROM ingredient i
-        INNER JOIN ingredient_location il ON i.id=il.ingredient_id
-        INNER JOIN location l on l.id=il.location_id"
-    )
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_else(|e| {
-        error!("Could not query from database: {e}");
-        vec![]
-    });
-
-    Json(json!(ingredient_rows))
+    Json(json!(ingredients_by_aisle))
 }
 
 #[derive(serde::Deserialize)]
@@ -84,7 +63,7 @@ pub struct Input {
     sync: Option<String>,
 }
 
-pub async fn get_ingredients(State(pool): State<PgPool>, Form(input): Form<Input>) -> Json<Value> {
+pub async fn post_ingredients(State(pool): State<PgPool>, Form(input): Form<Input>) -> Json<Value> {
     let ingredients = input.ingredient;
     let sync = input.sync;
 
