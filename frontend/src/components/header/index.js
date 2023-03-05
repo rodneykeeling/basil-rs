@@ -3,15 +3,7 @@ import style from './style.css';
 
 const Header = () => (
     <header class={style.header}>
-        <a href="/" class={style.logo}>
-            🌿
-            <h1>Basil</h1>
-        </a>
-        <nav>
-            <Link activeClassName={style.active} href="/">
-                Home
-            </Link>
-        </nav>
+        <a href="/" class={style.logo}>🌿<h1>basil</h1></a>
     </header>
 );
 
