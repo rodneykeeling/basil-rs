@@ -1,7 +1,7 @@
 use phf::phf_map;
+use reqwest::Client;
 use serde::Serialize;
 use std::collections::HashMap;
-use tracing::error;
 use uuid::Uuid;
 
 use crate::models::Ingredient;
@@ -37,7 +37,7 @@ struct Command<'a> {
     args: RequestContent<'a>,
 }
 
-pub async fn sync_ingredients(ingredients: &Vec<Ingredient>) {
+pub async fn sync_ingredients(ingredients: &[Ingredient]) -> Result<Client, reqwest::Error> {
     let mut commands_map = HashMap::new();
     let mut commands = Vec::new();
 
@@ -58,17 +58,12 @@ pub async fn sync_ingredients(ingredients: &Vec<Ingredient>) {
     commands_map.insert("commands", commands);
 
     let client = reqwest::Client::new();
-    let _ = match client
+    client
         .post(TODOIST_API_URL)
         .json(&commands_map)
         .header("Authorization", format!("Bearer {TODOIST_API_TOKEN}"))
         .send()
-        .await
-    {
-        Ok(r) => r,
-        Err(e) => {
-            error!("Failed todoist request: {e}");
-            return;
-        }
-    };
+        .await?;
+
+    Ok(client)
 }

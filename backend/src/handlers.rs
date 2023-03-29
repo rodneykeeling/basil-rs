@@ -84,7 +84,7 @@ pub async fn post_ingredients(State(pool): State<PgPool>, Form(input): Form<Inpu
     });
 
     if sync.is_some() && !rows.is_empty() {
-        todoist::sync_ingredients(&rows).await;
+        todoist::sync_ingredients(&rows).await.unwrap();
     }
 
     Json(json!(rows))

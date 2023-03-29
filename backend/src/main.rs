@@ -1,7 +1,7 @@
 use axum::{routing::get, Router};
 use dotenvy::dotenv;
 use std::net::SocketAddr;
-use tracing::{error, info};
+use tracing::info;
 
 mod handlers;
 mod models;
@@ -13,13 +13,9 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let db_pool = match sql::get_sql_conn().await {
-        Err(e) => {
-            error!("Could not connect to database: {e}");
-            return;
-        }
-        Ok(conn) => conn,
-    };
+    let db_pool = sql::get_sql_conn()
+        .await
+        .expect("Could not connect to database: {err}");
 
     let app = Router::new()
         .route(
@@ -31,11 +27,8 @@ async fn main() {
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     info!("Listening on {addr}");
-    match axum::Server::bind(&addr)
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-    {
-        Ok(a) => a,
-        Err(e) => panic!("Could not start axum server: {e}"),
-    };
+        .expect("Could not start axum server: {err}");
 }
